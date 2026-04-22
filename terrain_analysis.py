@@ -36,6 +36,20 @@ def extract_values_from_raster(da: xarray.DataArray, shapes):
 
 
 def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
+    """
+    Train a RandomForestClassifier and evaluate it on a test split.
+
+    The data is split into training and test sets. When verbose is True,
+    the function prints the accuracy, actual test labels, and predicted labels.
+
+    Args:
+        x: Feature matrix as a pandas DataFrame.
+        y: Target labels as a pandas Series.
+        verbose: Whether to print evaluation details.
+
+    Returns:
+        A trained RandomForestClassifier instance.
+    """
     x_train, x_test, y_train, y_test = train_test_split(
         x, y, test_size=0.1, random_state=42, stratify=y
     )

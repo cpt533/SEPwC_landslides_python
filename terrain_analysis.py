@@ -5,7 +5,10 @@ Calculate hazard risk of probability for landslides
 import argparse
 
 import numpy as np
+import pandas as pd
 import xarray
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
 
 
 def extract_values_from_raster(da: xarray.DataArray, shapes):
@@ -31,8 +34,14 @@ def extract_values_from_raster(da: xarray.DataArray, shapes):
     return vals
 
 
-def make_classifier(x, y, verbose=False):
-    return
+def make_classifier(x: pd.DataFrame, y: pd.DataFrame, verbose=False):
+    model = RandomForestClassifier()
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1)
+    model.fit(x_train, y_train)
+    y_pred = model.predict(x_test)
+    print(y_test)
+    print(y_pred)
+    return model
 
 
 def make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier):
@@ -69,3 +78,4 @@ def main(args_list=None):
 
 if __name__ == "__main__":
     main()
+2

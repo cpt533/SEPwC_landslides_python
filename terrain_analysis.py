@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import xarray
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 
@@ -34,13 +35,22 @@ def extract_values_from_raster(da: xarray.DataArray, shapes):
     return vals
 
 
-def make_classifier(x: pd.DataFrame, y: pd.DataFrame, verbose=False):
-    model = RandomForestClassifier()
-    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.1)
+def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.1, random_state=42, stratify=y
+    )
+    model = RandomForestClassifier(random_state=42)
     model.fit(x_train, y_train)
+
     y_pred = model.predict(x_test)
-    print(y_test)
-    print(y_pred)
+    acc = accuracy_score(y_test, y_pred)
+
+    if verbose:
+        print("Accuracy:", acc)
+        print("Actual:")
+        print(y_test)
+        print("Predicted:")
+        print(y_pred)
     return model
 
 

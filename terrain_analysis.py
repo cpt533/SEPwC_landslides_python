@@ -4,6 +4,7 @@ Calculate hazard risk of probability for landslides
 
 import argparse
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import xarray
@@ -72,8 +73,27 @@ def make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier):
     return
 
 
-def create_dataframe(topo, geo, lc, dist_fault, slope, shapes, landslide_label):
-    return
+def create_dataframe(
+    topo: xarray.DataArray,
+    geo: xarray.DataArray,
+    lc: xarray.DataArray,
+    dist_fault: xarray.DataArray,
+    slope: xarray.DataArray,
+    shapes: gpd.geoseries.GeoSeries,
+    landslide_label: int,
+):
+
+    df = pd.DataFrame(
+        {
+            "elev": extract_values_from_raster(topo, shapes),
+            "fault": extract_values_from_raster(dist_fault, shapes),
+            "slope": extract_values_from_raster(slope, shapes),
+            "LC": extract_values_from_raster(lc, shapes),
+            "Geol": extract_values_from_raster(geo, shapes),
+        }
+    )
+    df["ls"] = landslide_label
+    return df
 
 
 def reproject_to_match(in_raster, template_raster):
@@ -102,4 +122,3 @@ def main(args_list=None):
 
 if __name__ == "__main__":
     main()
-2

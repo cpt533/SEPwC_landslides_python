@@ -82,7 +82,38 @@ def create_dataframe(
     shapes: gpd.geoseries.GeoSeries,
     landslide_label: int,
 ):
+    """
+    Build a feature-matrix DataFrame by sampling rasters at point locations.
 
+    For each point in ``shapes`` the nearest pixel is sampled from each of the
+    five raster layers and stored as a row of features. A target column ``ls``
+    is filled with ``landslide_label`` for every row, producing a table ready
+    to pass to a classifier.
+
+    Parameters
+    ----------
+    topo : xarray.DataArray
+        Topography/elevation raster. Populates the ``elev`` column.
+    geo : xarray.DataArray
+        Geology raster. Populates the ``Geol`` column.
+    lc : xarray.DataArray
+        Land-cover raster. Populates the ``LC`` column.
+    dist_fault : xarray.DataArray
+        Distance-to-fault raster. Populates the ``fault`` column.
+    slope : xarray.DataArray
+        Slope raster. Populates the ``slope`` column.
+    shapes : geopandas.GeoSeries
+        Point geometries at which to sample the rasters.
+    landslide_label : int
+        Value written to the ``ls`` column for every row (e.g. ``1`` for
+        landslide points, ``0`` for non-landslide points).
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame with columns ``elev``, ``fault``, ``slope``, ``LC``,
+        ``Geol`` and ``ls``, one row per input point.
+    """
     df = pd.DataFrame(
         {
             "elev": extract_values_from_raster(topo, shapes),

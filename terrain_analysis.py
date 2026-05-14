@@ -128,7 +128,7 @@ def create_dataframe(
 
 
 def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.DataArray):
-    return in_raster.copy().rio.write_crs(template_raster.rio.crs)
+    return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
 
 def calculate_distance_to_faults(fault_shapefile, template_raster):

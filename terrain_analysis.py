@@ -72,6 +72,29 @@ def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
 
 
 def make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier):
+    """
+    Predict landslide probability for every pixel and return a raster.
+
+    Each pixel of the input rasters is treated as one row of features (in the
+    same column order used by ``create_dataframe``). The classifier's
+    probability for the landslide class is reshaped back to the raster grid.
+
+    Pixels where any input layer is NaN (e.g. edge pixels introduced by
+    ``reproject_to_match``) are filled with 0 before prediction so the
+    classifier does not crash, then set back to NaN.
+    Parameters
+    ----------
+    topo, geo, lc, dist_fault, slope : xarray.DataArray
+        Aligned input rasters (same shape, transform and CRS).
+    classifier : sklearn estimator
+        A fitted classifier whose ``predict_proba`` returns landslide
+        probability in column index 1.
+
+    Returns
+    -------
+    xarray.DataArray
+        Raster of landslide probabilities in [0, 1] aligned with ``topo``.
+    """
     shape = topo.shape
 
     df = pd.DataFrame(

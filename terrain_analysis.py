@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 
+# TODO: i think the data has polygons in it but this function can only do points
 def extract_values_from_raster(da: xarray.DataArray, shapes):
     """
     Extract raster x and y values at point locations.

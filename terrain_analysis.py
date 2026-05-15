@@ -72,7 +72,33 @@ def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
 
 
 def make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier):
-    return
+    shape = topo.shape
+
+    df = pd.DataFrame(
+        {
+            "elev": topo.values.ravel(),
+            "fault": dist_fault.values.ravel(),
+            "slope": slope.values.ravel(),
+            "LC": lc.values.ravel(),
+            "Geol": geo.values.ravel(),
+        }
+    )
+
+    nan_mask = df.isna().any(axis=1).values
+    df_filled = df.fillna(0)
+
+    probs = classifier.predict_proba(df_filled)[:, 1]
+    probs[nan_mask] = np.nan
+    prob_grid = probs.reshape(shape)
+
+    result = xarray.DataArray(
+        prob_grid,
+        coords=topo.coords,
+        dims=topo.dims,
+    )
+    result.rio.write_crs(topo.rio.crs, inplace=True)
+    result.rio.write_transform(topo.rio.transform(), inplace=True)
+    return result
 
 
 def create_dataframe(

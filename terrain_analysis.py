@@ -134,6 +134,23 @@ def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.Data
 
 
 def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataArray):
+    """
+    Build a raster where each pixel stores the distance to the nearest fault.
+
+    Parameters
+    ----------
+    fault_shapefile : str
+        Path to a shapefile containing fault line geometries.
+    template_raster : xarray.DataArray
+        Raster whose grid (shape, transform, CRS) the output should match.
+
+    Returns
+    -------
+    xarray.DataArray
+        A raster aligned with ``template_raster`` whose values are the
+        distance (in the template's CRS units) from each pixel
+        to the nearest fault.
+    """
     faults = gpd.read_file(fault_shapefile)
     faults = faults.to_crs(template_raster.rio.crs)
 

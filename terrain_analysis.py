@@ -7,7 +7,9 @@ import argparse
 import geopandas as gpd
 import numpy as np
 import pandas as pd
+import rasterio.features
 import xarray
+from scipy.ndimage import distance_transform_edt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
@@ -131,8 +133,34 @@ def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.Data
     return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
 
-def calculate_distance_to_faults(fault_shapefile, template_raster):
-    return
+def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataArray):
+    faults = gpd.read_file(fault_shapefile)
+    faults = faults.to_crs(template_raster.rio.crs)
+
+    transform = template_raster.rio.transform()
+    out_shape = (template_raster.rio.height, template_raster.rio.width)
+
+    fault_mask = rasterio.features.rasterize(
+        faults.geometry,
+        out_shape=out_shape,
+        transform=transform,
+        fill=0,
+        default_value=1,
+        dtype="uint8",
+    )
+
+    distances_px = distance_transform_edt(fault_mask == 0)
+    pixel_size = abs(transform.a)
+    distances = distances_px * pixel_size
+
+    result = xarray.DataArray(
+        distances,
+        coords=template_raster.coords,
+        dims=template_raster.dims,
+    )
+    result.rio.write_crs(template_raster.rio.crs, inplace=True)
+    result.rio.write_transform(transform, inplace=True)
+    return result
 
 
 def main(args_list=None):

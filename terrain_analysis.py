@@ -179,6 +179,25 @@ def create_dataframe(
     return df
 
 
+def calculate_slope(topo: xarray.DataArray):
+    transform = topo.rio.transform()
+    pixel_size = abs(transform.a)
+
+    elevation = topo.values.astype("float64")
+    dz_dy, dz_dx = np.gradient(elevation, pixel_size)
+    slope_rad = np.arctan(np.sqrt(dz_dx**2 + dz_dy**2))
+    slope_deg = np.degrees(slope_rad)
+
+    result = xarray.DataArray(
+        slope_deg,
+        coords=topo.coords,
+        dims=topo.dims,
+    )
+    result.rio.write_crs(topo.rio.crs, inplace=True)
+    result.rio.write_transform(transform, inplace=True)
+    return result
+
+
 def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.DataArray):
     return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
@@ -242,7 +261,12 @@ def main(args_list=None):
     parser.add_argument("landslides", help="landslide location shapefile")
     parser.add_argument("output", help="output probability raster file")
     parser.add_argument(
-        "-v", "--v", "--verbose", dest="verbose", action="store_true", help="Print progress"
+        "-v",
+        "--v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Print progress",
     )
 
     args = parser.parse_args(args_list)

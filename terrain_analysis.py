@@ -180,6 +180,23 @@ def create_dataframe(
 
 
 def calculate_slope(topo: xarray.DataArray):
+    """
+    Compute a slope raster (in degrees) from an elevation raster.
+
+    Uses numpy.gradient to estimate the rate of change of elevation in the x
+    and y directions. The slope at each pixel is the arctangent of the
+    magnitude of that gradient, converted from radians to degrees.
+
+    Parameters
+    ----------
+    topo : xarray.DataArray
+        Elevation raster.
+
+    Returns
+    -------
+    xarray.DataArray
+        Slope in degrees, aligned with ``topo``.
+    """
     transform = topo.rio.transform()
     pixel_size = abs(transform.a)
 

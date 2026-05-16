@@ -241,7 +241,9 @@ def main(args_list=None):
     parser.add_argument("--faults", required=True, help="fault location shapefile")
     parser.add_argument("landslides", help="landslide location shapefile")
     parser.add_argument("output", help="output probability raster file")
-    parser.add_argument("-v", "--verbose", action="store_true", help="Print progress")
+    parser.add_argument(
+        "-v", "--v", "--verbose", dest="verbose", action="store_true", help="Print progress"
+    )
 
     args = parser.parse_args(args_list)
 

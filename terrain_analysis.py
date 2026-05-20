@@ -8,6 +8,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 import rasterio.features
+import rioxarray
 import xarray
 from scipy.ndimage import distance_transform_edt
 from sklearn.ensemble import RandomForestClassifier
@@ -246,6 +247,10 @@ def main(args_list=None):
     )
 
     args = parser.parse_args(args_list)
+
+    topo = rioxarray.open_rasterio(args.topography, masked=True).squeeze()
+    geo = rioxarray.open_rasterio(args.geology, masked=True).squeeze()
+    lc = rioxarray.open_rasterio(args.landcover, masked=True).squeeze()
 
 
 if __name__ == "__main__":

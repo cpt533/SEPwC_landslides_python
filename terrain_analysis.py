@@ -16,7 +16,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
 
-# TODO: i think the data has polygons in it but this function can only do points
 def extract_values_from_raster(da: xarray.DataArray, shapes):
     """
     Extract raster x and y values at point locations.
@@ -294,6 +293,7 @@ def main(args_list=None):
 
     landslides = gpd.read_file(args.landslides)
     landslides = landslides.to_crs(topo.rio.crs)
+    landslide_points = landslides.geometry.centroid
 
     dist_fault = calculate_distance_to_faults(args.faults, topo)
 

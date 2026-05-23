@@ -263,6 +263,8 @@ def main(args_list=None):
     landslides = gpd.read_file(args.landslides)
     landslides = landslides.to_crs(topo.rio.crs)
 
+    dist_fault = calculate_distance_to_faults(args.faults, topo)
+
 
 if __name__ == "__main__":
     main()

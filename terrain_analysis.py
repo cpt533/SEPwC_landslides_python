@@ -184,6 +184,38 @@ def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.Data
     return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
 
+def calculate_slope(topo: xarray.DataArray) -> xarray.DataArray:
+    """
+    Calculate slope in degrees from an elevation raster.
+
+    Slope at each pixel is the steepness of the terrain, computed from how
+    elevation changes between neighbouring pixels in the x and y directions.
+
+    Parameters
+    ----------
+    topo : xarray.DataArray
+        Elevation raster with a CRS and an affine transform.
+
+    Returns
+    -------
+    xarray.DataArray
+        Slope raster in degrees, aligned with ``topo``.
+    """
+    pixel_size = abs(topo.rio.transform().a)
+    dz_dy, dz_dx = np.gradient(topo.values, pixel_size)
+    slope_rad = np.arctan(np.sqrt(dz_dx**2 + dz_dy**2))
+    slope_deg = np.degrees(slope_rad)
+
+    result = xarray.DataArray(
+        slope_deg,
+        coords=topo.coords,
+        dims=topo.dims,
+    )
+    result.rio.write_crs(topo.rio.crs, inplace=True)
+    result.rio.write_transform(topo.rio.transform(), inplace=True)
+    return result
+
+
 def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataArray):
     """
     Build a raster where each pixel stores the distance to the nearest fault.

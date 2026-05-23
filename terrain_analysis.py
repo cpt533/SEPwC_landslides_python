@@ -243,7 +243,12 @@ def main(args_list=None):
     parser.add_argument("landslides", help="landslide location shapefile")
     parser.add_argument("output", help="output probability raster file")
     parser.add_argument(
-        "-v", "--v", "--verbose", dest="verbose", action="store_true", help="Print progress"
+        "-v",
+        "--v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Print progress",
     )
 
     args = parser.parse_args(args_list)
@@ -251,6 +256,9 @@ def main(args_list=None):
     topo = rioxarray.open_rasterio(args.topography, masked=True).squeeze()
     geo = rioxarray.open_rasterio(args.geology, masked=True).squeeze()
     lc = rioxarray.open_rasterio(args.landcover, masked=True).squeeze()
+
+    geo = reproject_to_match(geo, topo)
+    lc = reproject_to_match(lc, topo)
 
 
 if __name__ == "__main__":

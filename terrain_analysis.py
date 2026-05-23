@@ -183,6 +183,22 @@ def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.Data
     return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
 
+def calculate_slope(topo: xarray.DataArray) -> xarray.DataArray:
+    pixel_size = abs(topo.rio.transform().a)
+    dz_dy, dz_dx = np.gradient(topo.values, pixel_size)
+    slope_rad = np.arctan(np.sqrt(dz_dx**2 + dz_dy**2))
+    slope_deg = np.degrees(slope_rad)
+
+    result = xarray.DataArray(
+        slope_deg,
+        coords=topo.coords,
+        dims=topo.dims,
+    )
+    result.rio.write_crs(topo.rio.crs, inplace=True)
+    result.rio.write_transform(topo.rio.transform(), inplace=True)
+    return result
+
+
 def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataArray):
     """
     Build a raster where each pixel stores the distance to the nearest fault.
@@ -242,7 +258,12 @@ def main(args_list=None):
     parser.add_argument("landslides", help="landslide location shapefile")
     parser.add_argument("output", help="output probability raster file")
     parser.add_argument(
-        "-v", "--v", "--verbose", dest="verbose", action="store_true", help="Print progress"
+        "-v",
+        "--v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Print progress",
     )
 
     args = parser.parse_args(args_list)

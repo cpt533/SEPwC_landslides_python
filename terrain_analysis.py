@@ -260,6 +260,9 @@ def main(args_list=None):
     geo = reproject_to_match(geo, topo)
     lc = reproject_to_match(lc, topo)
 
+    landslides = gpd.read_file(args.landslides)
+    landslides = landslides.to_crs(topo.rio.crs)
+
 
 if __name__ == "__main__":
     main()

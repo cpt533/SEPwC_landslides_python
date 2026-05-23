@@ -296,6 +296,7 @@ def main(args_list=None):
     landslide_points = landslides.geometry.centroid
 
     dist_fault = calculate_distance_to_faults(args.faults, topo)
+    slope = calculate_slope(topo)
 
 
 if __name__ == "__main__":

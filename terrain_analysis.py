@@ -298,6 +298,15 @@ def main(args_list=None):
     dist_fault = calculate_distance_to_faults(args.faults, topo)
     slope = calculate_slope(topo)
 
+    n = len(landslide_points)
+    minx, miny, maxx, maxy = topo.rio.bounds()
+    rng = np.random.default_rng(42)
+    rand_x = rng.uniform(minx, maxx, n)
+    rand_y = rng.uniform(miny, maxy, n)
+    non_landslide_points = gpd.GeoSeries(
+        gpd.points_from_xy(rand_x, rand_y), crs=topo.rio.crs
+    )
+
 
 if __name__ == "__main__":
     main()

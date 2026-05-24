@@ -39,6 +39,7 @@ def extract_values_from_raster(da: xarray.DataArray, shapes):
     return vals
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
     """
     Train a RandomForestClassifier and evaluate it on a test split.
@@ -125,6 +126,7 @@ def make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier):
     return result
 
 
+# pylint: disable=too-many-arguments,too-many-positional-arguments
 def create_dataframe(
     topo: xarray.DataArray,
     geo: xarray.DataArray,
@@ -180,6 +182,7 @@ def create_dataframe(
 
 
 def reproject_to_match(in_raster: xarray.DataArray, template_raster: xarray.DataArray):
+    """Reproject ``in_raster`` onto the grid (CRS, transform, shape) of ``template_raster``."""
     return in_raster.rio.reproject_match(template_raster, nodata=np.nan)
 
 
@@ -263,6 +266,8 @@ def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataAr
 
 
 def main(args_list=None):
+    """Run the landslide hazard pipeline and write a probability raster to disk."""
+    # pylint: disable=too-many-locals
     parser = argparse.ArgumentParser(
         prog="Landslide hazard using ML",
         description="Calculate landslide hazards using machine learning",

@@ -307,6 +307,12 @@ def main(args_list=None):
         gpd.points_from_xy(rand_x, rand_y), crs=topo.rio.crs
     )
 
+    df_pos = create_dataframe(topo, geo, lc, dist_fault, slope,
+                              landslide_points, landslide_label=1)
+    df_neg = create_dataframe(topo, geo, lc, dist_fault, slope,
+                              non_landslide_points, landslide_label=0)
+    df = pd.concat([df_pos, df_neg], ignore_index=True).dropna()
+
 
 if __name__ == "__main__":
     main()

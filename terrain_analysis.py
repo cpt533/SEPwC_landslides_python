@@ -3,8 +3,10 @@ Calculate hazard risk of probability for landslides
 """
 
 import argparse
+from pathlib import Path
 
 import geopandas as gpd
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import rasterio.features
@@ -70,6 +72,9 @@ def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
         print(y_test)
         print("Predicted:")
         print(y_pred)
+        importances = pd.Series(model.feature_importances_, index=x.columns)
+        print("Feature importances:")
+        print(importances.sort_values(ascending=False).to_string())
     return model
 
 
@@ -265,6 +270,35 @@ def calculate_distance_to_faults(fault_shapefile, template_raster: xarray.DataAr
     return result
 
 
+def plot_probability_raster(prob_raster: xarray.DataArray, output_path):
+    """
+    Save a PNG quick-look of a landslide-probability raster.
+
+    The raster is rendered with a perceptual colormap and a colorbar so the
+    output GeoTIFF can be inspected without opening it in a GIS application.
+
+    Parameters
+    ----------
+    prob_raster : xarray.DataArray
+        Probability raster with values in [0, 1] (NaN pixels are skipped).
+    output_path : str or pathlib.Path
+        Destination PNG file.
+    """
+    fig, ax = plt.subplots(figsize=(8, 6))
+    prob_raster.plot(
+        ax=ax,
+        cmap="magma",
+        vmin=0,
+        vmax=1,
+        cbar_kwargs={"label": "Landslide probability"},
+    )
+    ax.set_title("Landslide hazard probability")
+    ax.set_aspect("equal")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=150)
+    plt.close(fig)
+
+
 def main(args_list=None):
     """Run the landslide hazard pipeline and write a probability raster to disk."""
     # pylint: disable=too-many-locals
@@ -322,6 +356,9 @@ def main(args_list=None):
 
     prob_raster = make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier)
     prob_raster.rio.to_raster(args.output)
+
+    plot_path = Path(args.output).with_suffix(".png")
+    plot_probability_raster(prob_raster, plot_path)
 
 
 if __name__ == "__main__":

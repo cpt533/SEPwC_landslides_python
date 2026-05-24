@@ -1,1 +1,6 @@
 .venv/
+*.png
+!assets/*.png
+*.tif
+!data/*.tif
+!assets/*.tif

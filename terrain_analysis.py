@@ -320,6 +320,11 @@ def main(args_list=None):
         action="store_true",
         help="Print progress",
     )
+    parser.add_argument(
+        "--plot",
+        action="store_true",
+        help="Also save a PNG quick-look of the probability raster",
+    )
 
     args = parser.parse_args(args_list)
 
@@ -359,8 +364,9 @@ def main(args_list=None):
     prob_raster = make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier)
     prob_raster.rio.to_raster(args.output)
 
-    plot_path = Path(args.output).with_suffix(".png")
-    plot_probability_raster(prob_raster, plot_path)
+    if args.plot:
+        plot_path = Path(args.output).with_suffix(".png")
+        plot_probability_raster(prob_raster, plot_path)
 
 
 if __name__ == "__main__":

@@ -313,6 +313,11 @@ def main(args_list=None):
                               non_landslide_points, landslide_label=0)
     df = pd.concat([df_pos, df_neg], ignore_index=True).dropna()
 
+    classifier = make_classifier(df.drop("ls", axis=1), df["ls"], verbose=args.verbose)
+
+    prob_raster = make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier)
+    prob_raster.rio.to_raster(args.output)
+
 
 if __name__ == "__main__":
     main()

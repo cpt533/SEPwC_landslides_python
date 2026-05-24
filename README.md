@@ -1,91 +1,27 @@
-# SEPwC Landslide Risk Coursework (Python)
+SEPwC Landslide Risk Coursework (Python)
 
-## Introduction
+This project trains a machine learning model to predict the probability of landslides across a region from terrain, geological and land cover data, and outputs the result as a probability raster (GeoTIFF) with values between 0 and 1.
 
-Your task is to write code to read in muliple raster and shapefiles, perform some analysis, 
-and then generate a risk (probability) map of landslides. You should output this as a 
-raster (with values from 0 to 1).
+The original assignment brief is in the file ASSIGNMENT_INSTRUCTIONS.md.
 
-## The tests
+Running
 
-The test suite uses a number of test data sets. The tests will check these data
-functions work. 
+To run the code, use this command:
 
-You can run the tests by running `pytest` or `pytest test/test_terrain.py`
-from the main directory. Try it now, before you make any changes!
-
-You can run a single test using:
-
-```bash
-pytest test/test_terrian.py::TestTerrainAnalysis::test_convert_rasterio
-```
-
-You can run the unit tests only:
-
-```bash
-pytest test/test_terrain.py::TestTerrainAnalysis
-```
-
-The regression tests check the whole code:
-
-```bash
-pytest test/test_terrain.py::TestRegression
-```
-
-You'll notice another test file: `test_distance.py`. This is because I could
-not find a decent function to work out the distance from a value in Python. So I
-had to write one. This is the test suite for that code.
-
-## The data
-
-There are a number of rasters and shapefiles for this task:
-
- - `AW3D30.tif` - topography data
- - `Confirmed_faults.shp` - fault location data
- - `Geology.tif` - rock types across the region
- - `Lancover.tif` - landcover codes
- - `landslides.shp` - Landslide occurances
-
-From those you will also need to generate slope raster and a "distance from fault" raster.
-
-Your code should run like:
-
-```bash
 python3 terrain_analysis.py --topography data/AW3D30.tif --geology data/geology_raster.tif --landcover data/Landcover.tif --faults data/Confirmed_faults.shp data/landslides.shp probability.tif
-```
 
-## Hints and tips
+The -v or --verbose flag prints the model accuracy and feature importances. The --plot flag also saves a PNG quick-look of the probability raster next to the GeoTIFF.
 
-Use `geopandas` to load shapefile data and manage most of the data wrangling. 
+Tests can be run with pytest from the project root.
 
-The `rasterio` module can handle the raster data and a number of other features you need.
+How the code works
 
-The [`sklearn.ensamble.RandomForestClassifier`](https://scikit-learn.org/stable/modules/ensemble.html#random-forests)
-can be used to generate the fitting function to generate 
-the probability map. This can be done by extracting data from all of your rasters under the landslides shapefile
-into a geopandas data frame. You'll also need negative samples, i.e. where landslides do not occur 
-(hint: will need to be the same length as the landslide data!). You send these into
-The RF classifier and then use `predict` to make a model!
+The main function in terrain_analysis.py runs the full pipeline. It loads the topography, geology and land cover rasters (reprojecting the geology and land cover ones onto the topography grid), derives a slope raster and a distance-to-faults raster, samples all five layers at the landslide points (positives) and at the same number of random points (negatives), trains a RandomForestClassifier on the resulting table, and then predicts a landslide probability for every pixel and writes it out as a GeoTIFF.
 
-The data in the RF classifier should probably be split into "test" and "train", there is a function
-in `sklearn` to do that for you (`test_train_split`). It might be helpful to print the accuracy score
-or other metrics if the verbose flag is on, perhaps. You can find more random forests in python on [this
-webpage](https://www.datacamp.com/tutorial/random-forests-classifier-python).
+Use of AI
 
-## The rules
+AI tools (Google's Gemini, Open AI's Chat GPT and Anthropic's Claude) were used during this assessment, both as a learning aid and to assist in writing parts of the code.
 
-You cannot alter any of the assert comments in `test/test_terrain.py`
+Acknowledgements
 
-If you alter any function names in the main code, you *can* alter the name
-in the test file to match or split the tests into different chunks; however 
-the actual test, i.e. the asserts, must remain unchanged. This will be checked.
-If you alter the tests, you may get conflicts if this main repository is changed. 
-It is your job to fix any. 
-
-If you wish to add more tests, please do, but place them in a separate file
-in the `test` directory. Remember to name the file `test_something.py`. You must
-also make sure the `class` name(s) are different to those in `test/test_terrain.py`.
-
-You can also add extra functionality, but the command-line interface must pass
-the tests set.
-
+This repository is a fork of the SEPwC landslides coursework template provided by the module convenor, Jon Hill (https://github.com/jhill1).

@@ -42,7 +42,7 @@ def extract_values_from_raster(da: xarray.DataArray, shapes):
 
 
 # pylint: disable=too-many-arguments,too-many-positional-arguments
-def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
+def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False, seed: int = 42):
     """
     Train a RandomForestClassifier and evaluate it on a test split.
 
@@ -53,14 +53,15 @@ def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False):
         x: Feature matrix as a pandas DataFrame.
         y: Target labels as a pandas Series.
         verbose: Whether to print evaluation details.
+        seed: Random seed used for the train/test split and the classifier.
 
     Returns:
         A trained RandomForestClassifier instance.
     """
     x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=0.1, random_state=42, stratify=y
+        x, y, test_size=0.1, random_state=seed, stratify=y
     )
-    model = RandomForestClassifier(random_state=42)
+    model = RandomForestClassifier(random_state=seed)
     model.fit(x_train, y_train)
 
     y_pred = model.predict(x_test)
@@ -325,6 +326,12 @@ def main(args_list=None):
         action="store_true",
         help="Also save a PNG quick-look of the probability raster",
     )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for the classifier and non-landslide point sampling",
+    )
 
     args = parser.parse_args(args_list)
 
@@ -352,7 +359,7 @@ def main(args_list=None):
     # Fixed seed keeps results reproducible across runs.
     n = len(landslide_points)
     minx, miny, maxx, maxy = topo.rio.bounds()
-    rng = np.random.default_rng(42)
+    rng = np.random.default_rng(args.seed)
     rand_x = rng.uniform(minx, maxx, n)
     rand_y = rng.uniform(miny, maxy, n)
     non_landslide_points = gpd.GeoSeries(
@@ -369,7 +376,9 @@ def main(args_list=None):
     # Drop any rows where a random point fell on a NaN pixel (e.g. outside coverage).
     df = pd.concat([df_pos, df_neg], ignore_index=True).dropna()
 
-    classifier = make_classifier(df.drop("ls", axis=1), df["ls"], verbose=args.verbose)
+    classifier = make_classifier(
+        df.drop("ls", axis=1), df["ls"], verbose=args.verbose, seed=args.seed
+    )
 
     # Apply the trained model to every pixel to produce the hazard probability map.
     prob_raster = make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier)

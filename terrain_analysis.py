@@ -328,20 +328,28 @@ def main(args_list=None):
 
     args = parser.parse_args(args_list)
 
+    # Load rasters with nodata masked to NaN; squeeze() drops the singleton band axis.
     topo = rioxarray.open_rasterio(args.topography, masked=True).squeeze()
     geo = rioxarray.open_rasterio(args.geology, masked=True).squeeze()
     lc = rioxarray.open_rasterio(args.landcover, masked=True).squeeze()
 
+    # Topography is treated as the reference grid; geology and land cover are
+    # resampled onto it so every layer shares one CRS, transform, and shape.
     geo = reproject_to_match(geo, topo)
     lc = reproject_to_match(lc, topo)
 
+    # Landslide polygons reduced to centroids so they can be sampled as points.
     landslides = gpd.read_file(args.landslides)
     landslides = landslides.to_crs(topo.rio.crs)
     landslide_points = landslides.geometry.centroid
 
+    # Derived feature layers, computed once and reused for training and prediction.
     dist_fault = calculate_distance_to_faults(args.faults, topo)
     slope = calculate_slope(topo)
 
+    # The classifier needs negative examples too. Generate the same number of
+    # random points across the topo bounds as a stand-in for "no landslide here".
+    # Fixed seed keeps results reproducible across runs.
     n = len(landslide_points)
     minx, miny, maxx, maxy = topo.rio.bounds()
     rng = np.random.default_rng(42)
@@ -351,20 +359,24 @@ def main(args_list=None):
         gpd.points_from_xy(rand_x, rand_y), crs=topo.rio.crs
     )
 
+    # Sample feature values at each point and label them (1 = landslide, 0 = not).
     df_pos = create_dataframe(
         topo, geo, lc, dist_fault, slope, landslide_points, landslide_label=1
     )
     df_neg = create_dataframe(
         topo, geo, lc, dist_fault, slope, non_landslide_points, landslide_label=0
     )
+    # Drop any rows where a random point fell on a NaN pixel (e.g. outside coverage).
     df = pd.concat([df_pos, df_neg], ignore_index=True).dropna()
 
     classifier = make_classifier(df.drop("ls", axis=1), df["ls"], verbose=args.verbose)
 
+    # Apply the trained model to every pixel to produce the hazard probability map.
     prob_raster = make_prob_raster_data(topo, geo, lc, dist_fault, slope, classifier)
     prob_raster.rio.to_raster(args.output)
 
     if args.plot:
+        # PNG sits alongside the GeoTIFF with the same stem for easy inspection.
         plot_path = Path(args.output).with_suffix(".png")
         plot_probability_raster(prob_raster, plot_path)
 

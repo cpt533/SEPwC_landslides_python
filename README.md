@@ -1,4 +1,5 @@
 SEPwC Landslide Risk Coursework (Python)
+[ENV00046I-S2-A] Solving Environmental Problems with Code
 
 This project trains a machine learning model to predict the probability of landslides across a region from terrain, geological and land cover data, and outputs the result as a probability raster (GeoTIFF) with values between 0 and 1.
 

@@ -5,6 +5,8 @@ This project trains a machine learning model to predict the probability of lands
 
 The original assignment brief is in the file ASSIGNMENT_INSTRUCTIONS.md.
 
+![](./assets/probability.png)
+
 ## Running
 
 To run the code, use this command:

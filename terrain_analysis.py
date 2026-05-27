@@ -361,14 +361,25 @@ def main(args_list=None):
 
     # The classifier needs negative examples too. Generate the same number of
     # random points across the topo bounds as a stand-in for "no landslide here".
+    # Points falling inside a landslide polygon are rejected so negatives are
+    # genuinely non-landslide; we oversample and refill until we have n.
     # Fixed seed keeps results reproducible across runs.
     n = len(landslide_points)
     minx, miny, maxx, maxy = topo.rio.bounds()
     rng = np.random.default_rng(args.seed)
-    rand_x = rng.uniform(minx, maxx, n)
-    rand_y = rng.uniform(miny, maxy, n)
+    landslide_union = landslides.geometry.union_all()
+    kept_x: list[float] = []
+    kept_y: list[float] = []
+    while len(kept_x) < n:
+        need = n - len(kept_x)
+        cand_x = rng.uniform(minx, maxx, need * 2)
+        cand_y = rng.uniform(miny, maxy, need * 2)
+        cand = gpd.GeoSeries(gpd.points_from_xy(cand_x, cand_y), crs=topo.rio.crs)
+        outside = ~cand.intersects(landslide_union)
+        kept_x.extend(cand_x[outside.values][:need])
+        kept_y.extend(cand_y[outside.values][:need])
     non_landslide_points = gpd.GeoSeries(
-        gpd.points_from_xy(rand_x, rand_y), crs=topo.rio.crs
+        gpd.points_from_xy(kept_x, kept_y), crs=topo.rio.crs
     )
 
     # Sample feature values at each point and label them (1 = landslide, 0 = not).

@@ -14,7 +14,7 @@ import rioxarray
 import xarray
 from scipy.ndimage import distance_transform_edt
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 
@@ -73,6 +73,11 @@ def make_classifier(x: pd.DataFrame, y: pd.Series, verbose: bool = False, seed: 
         print(y_test)
         print("Predicted:")
         print(y_pred)
+        # Confusion matrix: rows are actual class, cols are predicted class.
+        # Layout: [[TN, FP], [FN, TP]] for labels=[0, 1].
+        cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+        print("Confusion matrix (rows=actual, cols=predicted, labels=[0, 1]):")
+        print(cm)
         importances = pd.Series(model.feature_importances_, index=x.columns)
         print("Feature importances:")
         print(importances.sort_values(ascending=False).to_string())

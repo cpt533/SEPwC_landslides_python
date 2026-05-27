@@ -11,9 +11,7 @@ To run the code, use this command:
 
 python3 terrain_analysis.py --topography data/AW3D30.tif --geology data/geology_raster.tif --landcover data/Landcover.tif --faults data/Confirmed_faults.shp data/landslides.shp probability.tif
 
-The -v or --verbose flag prints the model accuracy and feature importances. The --plot flag also saves a PNG quick-look of the probability raster next to the GeoTIFF.
-
-Tests can be run with pytest from the project root.
+The -v or --verbose flag prints the model accuracy, a confusion matrix (2x2 table of test-set results), and feature importances (shows how much random forest relied on each input feature). The --plot flag also saves a PNG quick-look of the probability raster next to the GeoTIFF.
 
 How the code works
 
